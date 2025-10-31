@@ -9,8 +9,8 @@ const boxLength = 9;
 function boxClick(index){
   const box = document.getElementById(`box-${index}`);
   console.log('Box clicked:', index);
-    
-  if (box.innerText !== "") return;
+
+  if (box.innerText !== "" || document.getElementById("game-status").innerText !== "") return;
   box.innerText = turn;
   game[index] = turn;
   console.log(game);
