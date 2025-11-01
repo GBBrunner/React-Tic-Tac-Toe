@@ -1,18 +1,10 @@
-import { useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import { Box } from './componenets/Box.jsx';
 
 let turn = "X";
 const game = new Array(9).fill(null);
 const boxLength = 9;
-
-function setBoardTurnClass(currentTurn) {
-  const board = document.getElementById("game-board");
-  if (board) {
-    board.classList.remove("turn-x", "turn-o");
-    board.classList.add(currentTurn === "X" ? "turn-x" : "turn-o");
-  }
-}
 
 function boxClick(index){
   const box = document.getElementById(`box-${index}`);
@@ -25,8 +17,8 @@ function boxClick(index){
   turn = turn === "X" ? "O" : "X";
   if (turn === "X") box.style.color = "red";
   else box.style.color = "blue";
-  setBoardTurnClass(turn);
   checkWin();
+
 }
 
 function restartGame() {
@@ -37,9 +29,8 @@ function restartGame() {
     for (let i = 0; i < boxLength; i++) {
         const box = document.getElementById(`box-${i}`);
         box.innerText = "";
-    box.style.backgroundColor = "";
+        box.style.color = "black";
     }
-    setBoardTurnClass(turn);
 }
 function checkWin() {
   const gameStatus = document.getElementById("game-status");
@@ -65,10 +56,7 @@ function checkWin() {
     gameStatus.innerText = "It's a draw!";
   }
 }
-function App() {
-  useEffect(() => {
-    setBoardTurnClass(turn);
-  }, []);
+function TicTacToe() {
   return (
     <>
       <div id="game-board">
@@ -84,4 +72,4 @@ function App() {
   )
 }
 
-export default App
+export default TicTacToe
