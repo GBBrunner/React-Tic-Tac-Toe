@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import './App.css'
 import { Box } from './componenets/Box.jsx';
-import { PrevTurn } from './componenets/PrevTurn.jsx';
 import TestDiv from "./componenets/TestDiv";
 
 let player = "X";
 let round = [];
-const game = new Array(9).fill(null);
+let game = new Array(9).fill(null);
 const boxLength = 9;
 const gameHistory = [];
+const roundHistory = [];
 
 function setBoardTurnClass(currentTurn) {
   const board = document.getElementById("game-board");
@@ -52,6 +52,9 @@ function App() {
     if (gameStatus) gameStatus.innerText = "";
     player = "X";
     game.fill(null);
+    // clear histories
+    gameHistory.length = 0;
+    roundHistory.length = 0;
     for (let i = 0; i < boxLength; i++) {
       const box = document.getElementById(`box-${i}`);
       if (box) {
@@ -66,21 +69,46 @@ function App() {
   }
 
   const PrevBtnClick = (index) => {
-    console.log('test');
-    for (let i = 0; gameHistory.length > index; i++) {
-      console.log(gameHistory);
+    // index is the number of moves to keep (1-based). Trim history to that length
+    console.log('Reverting to turn', index);
+    while (gameHistory.length > index) {
       gameHistory.pop();
-      turn--;
     }
-    game = [...gameHistory[gameHistory.length - 1] || new Array(9).fill(null)];
+    // also trim round history to keep in sync
+    while (roundHistory.length > index) {
+      roundHistory.pop();
+    }
+    // set current turn to number of moves kept
+    turn = index;
+    // derive player and round from the saved round data (if any)
+    const lastRound = roundHistory[roundHistory.length - 1] || null;
+    if (!lastRound) {
+      // no moves -> X to play
+      round = [];
+      player = "X";
+    } else {
+      // lastRound is [turnNumber, playerWhoMoved]
+      round = [...lastRound];
+      // next player is the opposite of the player who made the last move
+      player = lastRound[1] === "X" ? "O" : "X";
+    }
+    // Restore the board state from history (or empty board if index === 0)
+    const targetState = gameHistory[gameHistory.length - 1] || new Array(9).fill(null);
+    game = [...targetState];
     for (let i = 0; i < boxLength; i++) {
       const box = document.getElementById(`box-${i}`);
       if (box) {
         box.innerText = game[i] || "";
         box.style.backgroundColor = "";
-        box.style.color = "";
       }
     }
+    // Trim displayed move buttons and nextId to match history
+    setTestDivs(prev => prev.slice(0, index));
+    setNextId(index);
+    // Clear any game status (win/draw) and update board class
+    const gameStatus = document.getElementById("game-status");
+    if (gameStatus) gameStatus.innerText = "";
+    setBoardTurnClass(player);
   };
 
   const boxClick = (index) => {
@@ -95,7 +123,9 @@ function App() {
     game[index] = player;
     console.log(game);
     console.log(round);
-    gameHistory.push([...game]);
+  gameHistory.push([...game]);
+  // record which player made this move so we can restore who should play next
+  roundHistory.push([...round]);
     // create a new TestDiv entry for this click
     setTestDivs(prev => [...prev, { id: nextId, box: index, mark: game[index] }]);
     setNextId(n => n + 1);
